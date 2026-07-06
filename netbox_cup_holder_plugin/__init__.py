@@ -8,7 +8,7 @@ https://docs.netbox.dev/en/stable/plugins/development/#pluginconfig-attributes
 """
 
 __author__ = """Peter Spellward"""
-__email__ = ""
+__email__ = "peter.spellward@pm.me"
 __version__ = "0.1.0"
 
 
@@ -18,9 +18,9 @@ from netbox.plugins import PluginConfig
 class CupholderConfig(PluginConfig):
     name = "netbox_cup_holder_plugin"
     verbose_name = "NetBox Cup Holder Plugin"
-    description = "Netbox plugin for Cup Holders"
+    description = "Track rack-mounted cup holders in NetBox with a type catalog, one holder per rack, and mount-face placement."
     author= "Peter Spellward"
-    author_email = ""
+    author_email = "peter.spellward@pm.me"
     version = __version__
     base_url = "netbox_cup_holder_plugin"
     min_version = "4.5.0"
