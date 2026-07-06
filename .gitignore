@@ -426,3 +426,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local CI NetBox checkout cache
+.cache/

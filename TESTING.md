@@ -178,6 +178,29 @@ with disable_warnings('django.request'):
 
 ## Running Tests
 
+### Before you push (recommended)
+
+CI uses **Ruff 0.11.12**, **NetBox v4.5.10**, and **`testing/configuration.py`** — not your day-to-day NetBox install. Run the same checks locally:
+
+```bash
+# Full CI parity (PostgreSQL + Redis on localhost required)
+make ci
+
+# Fast pre-push smoke test (lint + migration dependency graph only)
+make ci-quick
+
+# Install git hook to run ci-quick automatically on push
+make install-pre-push-hook
+```
+
+`make ci-quick` catches the issues that slipped through earlier:
+
+- Ruff version / rule mismatches vs CI
+- Plugin migrations referencing NetBox core migrations that do not exist in v4.5.10
+- (with `make ci`) bad `testing/configuration.py`, missing migrations, test failures
+
+The NetBox release used for checks defaults to `v4.5.10` (see `.github/workflows/ci.yaml`). Override with `NETBOX_REF=v4.5.0 make ci-quick`.
+
 ### Locally (with NetBox installed)
 
 ```bash
