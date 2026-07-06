@@ -151,7 +151,7 @@ def drop_orphaned_catalog_tables(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('extras', '0140_imageattachment_image_size'),
+        ('extras', '0001_squashed'),
         ('users', '0015_owner'),
         ('netbox_cup_holder_plugin', '0002_cupholder_rack_mount'),
     ]
