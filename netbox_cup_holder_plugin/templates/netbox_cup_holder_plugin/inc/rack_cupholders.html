@@ -1,0 +1,22 @@
+{% load helpers %}
+{% if cupholder %}
+<div class="card">
+  <h5 class="card-header">Cup Holder</h5>
+  <table class="table table-hover attr-table">
+    <tbody>
+      <tr>
+        <th scope="row">Name</th>
+        <td><a href="{{ cupholder.get_absolute_url }}">{{ cupholder.name }}</a></td>
+      </tr>
+      <tr>
+        <th scope="row">Type</th>
+        <td><a href="{{ cupholder.cupholder_type.get_absolute_url }}">{{ cupholder.cupholder_type }}</a></td>
+      </tr>
+      <tr>
+        <th scope="row">Mount Face</th>
+        <td>{{ cupholder.get_mount_face_display }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
