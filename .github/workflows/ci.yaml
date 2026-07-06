@@ -79,6 +79,9 @@ jobs:
         run: |
           git clone --depth 1 --branch v4.5.10 https://github.com/netbox-community/netbox.git
 
+      - name: Ensure NetBox static docs directory exists
+        run: mkdir -p netbox/netbox/project-static/docs
+
       - name: Install NetBox dependencies
         working-directory: netbox
         run: |

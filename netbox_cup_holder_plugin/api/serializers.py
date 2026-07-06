@@ -12,12 +12,22 @@ https://www.django-rest-framework.org/api-guide/serializers/
 """
 
 from dcim.api.serializers import RackSerializer
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext_lazy as _
 from netbox.api.fields import ChoiceField
 from netbox.api.serializers import NetBoxModelSerializer, PrimaryModelSerializer
 from rest_framework import serializers
 
 from ..choices import CupholderMountFaceChoices, CupholderSizeChoices
 from ..models import Cupholder, CupholderType
+
+
+def _django_validation_error_to_drf(exc: DjangoValidationError) -> serializers.ValidationError:
+    if hasattr(exc, 'message_dict') and exc.message_dict:
+        return serializers.ValidationError(exc.message_dict)
+    if hasattr(exc, 'messages'):
+        return serializers.ValidationError(exc.messages)
+    return serializers.ValidationError(str(exc))
 
 
 class CupholderTypeSerializer(PrimaryModelSerializer):
@@ -42,6 +52,7 @@ class CupholderTypeSerializer(PrimaryModelSerializer):
             'created',
             'last_updated',
         )
+        brief_fields = ('id', 'url', 'display', 'name', 'size', 'material', 'description')
 
 
 class CupholderSerializer(NetBoxModelSerializer):
@@ -67,3 +78,18 @@ class CupholderSerializer(NetBoxModelSerializer):
             "created",
             "last_updated",
         )
+        brief_fields = ('id', 'url', 'display', 'name', 'mount_face')
+
+    def validate(self, data):
+        try:
+            return super().validate(data)
+        except DjangoValidationError as exc:
+            raise _django_validation_error_to_drf(exc) from exc
+
+    def validate_rack(self, rack):
+        duplicate_qs = Cupholder.objects.filter(rack=rack)
+        if self.instance:
+            duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+        if duplicate_qs.exists():
+            raise serializers.ValidationError(_('This rack already has a cup holder assigned.'))
+        return rack
