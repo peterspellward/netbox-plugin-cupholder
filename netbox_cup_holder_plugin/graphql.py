@@ -8,12 +8,15 @@ For Strawberry GraphQL documentation, see:
 https://strawberry.rocks/
 """
 
-from typing import Annotated, List
+from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 import strawberry_django
 
 from . import models
+
+if TYPE_CHECKING:
+    from dcim.graphql.types import RackType
 
 
 @strawberry_django.type(
@@ -40,9 +43,9 @@ class CupholderQuery:
     """GraphQL queries for NetBox Cup Holder Plugin."""
 
     cupholder: Cupholder = strawberry_django.field()
-    cupholder_list: List[Cupholder] = strawberry_django.field()
+    cupholder_list: list[Cupholder] = strawberry_django.field()
     cupholder_type: CupholderType = strawberry_django.field()
-    cupholder_type_list: List[CupholderType] = strawberry_django.field()
+    cupholder_type_list: list[CupholderType] = strawberry_django.field()
 
 
 schema = [

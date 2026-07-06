@@ -4,7 +4,6 @@ import taggit.managers
 import utilities.json
 from django.db import migrations, models
 
-
 CUPHOLDER_TYPES = (
     {
         'name': 'Big Joe 6000',
