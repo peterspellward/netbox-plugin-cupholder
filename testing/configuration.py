@@ -43,7 +43,9 @@ REDIS = {
 
 # Security settings (test-only values)
 SECRET_KEY = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-API_TOKEN_PEPPERS = ['test-pepper-for-api-tokens']
+API_TOKEN_PEPPERS = {
+    1: 'TEST-VALUE-DO-NOT-USE-TEST-VALUE-DO-NOT-USE-TEST-VALUE-DO-NOT-USE',
+}
 
 # For testing, allow all hosts
 ALLOWED_HOSTS = ['*']
@@ -129,8 +131,8 @@ EMAIL_PORT = 25
 EMAIL_TIMEOUT = 10
 EMAIL_FROM_EMAIL = 'netbox@localhost'
 
-# Exempt all views from login requirement for testing
-EXEMPT_VIEW_PERMISSIONS = ['*']
+# Do not exempt view permissions — permission tests expect 403 without ObjectPermission.
+# NetBox defaults EXEMPT_VIEW_PERMISSIONS to [] when unset.
 
 # Banner (optional)
 BANNER_TOP = ''

@@ -10,7 +10,7 @@ def clear_existing_cupholders(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dcim', '0237_module_remove_local_context_data'),
+        ('dcim', '0001_squashed'),
         ('netbox_cup_holder_plugin', '0001_initial'),
     ]
 

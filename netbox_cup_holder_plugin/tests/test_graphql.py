@@ -2,7 +2,7 @@
 Test cases for NetBox Cup Holder Plugin GraphQL API.
 """
 from ..choices import CupholderMountFaceChoices
-from ..models import Cupholder, CupholderType
+from ..models import Cupholder
 from ..testing import PluginGraphQLTestCase
 from ..testing.utils import create_cupholder, create_cupholder_type, create_rack
 

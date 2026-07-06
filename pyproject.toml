@@ -11,7 +11,7 @@ version = "0.1.0"
 authors = [
     {name = "Peter Spellward", email = "peter.spellward@pm.me"},
 ]
-description = "Netbox plugin for Cup Holders"
+description = "Track rack-mounted cup holders in NetBox with a type catalog, one holder per rack, and mount-face placement."
 readme = "README.md"
 license-files = ["LICENSE"]
 keywords = ["netbox", "netbox-plugin"]
@@ -42,7 +42,7 @@ test = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/peterspellward/netbox-cup-holder-plugin/blob/main/README.md"
+Documentation = "https://peterspellward.github.io/netbox-cup-holder-plugin/"
 Source = "https://github.com/peterspellward/netbox-cup-holder-plugin"
 Tracker = "https://github.com/peterspellward/netbox-cup-holder-plugin/issues"
 

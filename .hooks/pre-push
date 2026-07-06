@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Git pre-push hook: quick CI parity checks before remote push.
+# Install: cp .hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Fast checks only (lint + migration deps). Full suite: make ci
+export CI_LOCAL_SKIP_TESTS=1
+exec "$ROOT/scripts/ci-local.sh"

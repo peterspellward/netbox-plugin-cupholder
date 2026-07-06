@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('extras', '0140_imageattachment_image_size'),
+        ('extras', '0001_squashed'),
     ]
 
     operations = [

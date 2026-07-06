@@ -10,12 +10,13 @@ Tests are organized in the `netbox_cup_holder_plugin/tests/` directory:
 netbox_cup_holder_plugin/
 ├── tests/
 │   ├── __init__.py
-│   ├── test_models.py    # Model tests
-│   ├── test_views.py     # Web view tests
-│   └── test_api.py       # REST API tests (if enabled)
+│   ├── test_models.py     # Model tests
+│   ├── test_views.py      # Web view tests
+│   ├── test_api.py        # REST API tests
+│   └── test_graphql.py    # GraphQL queries
 └── testing/
-    ├── __init__.py       # Base test classes
-    └── utils.py          # Test utilities
+    ├── __init__.py        # Base test classes
+    └── utils.py           # Test utilities
 ```
 
 ## Base Test Classes
@@ -33,7 +34,10 @@ class MyTestCase(PluginTestCase):
     def test_something(self):
         # self.user is automatically created
         # self.client is logged in
-        self.add_permissions('netbox_cup_holder_plugin.view_cupholder')
+        self.add_permissions(
+            'netbox_cup_holder_plugin.view_cupholder',
+            'netbox_cup_holder_plugin.view_cupholdertype',
+        )
         # ... test code ...
 ```
 
@@ -145,19 +149,27 @@ The `netbox_cup_holder_plugin.testing.utils` module provides helpful utilities:
 
 ```python
 from netbox_cup_holder_plugin.testing.utils import (
-    get_random_string,      # Generate random test data
-    create_test_user,       # Create users with permissions
-    post_data,              # Convert dict to form POST format
-    extract_form_errors,    # Parse form validation errors
-    disable_warnings,       # Suppress expected log warnings
-    create_tags,            # Create test tags
-    get_deletable_objects,  # Check cascade deletion
-    assert_object_changes,  # Verify change logging
+    get_random_string,       # Generate random test data
+    create_test_user,        # Create users with permissions
+    create_rack,             # Create a DCIM rack
+    create_cupholder_type,   # Create a catalog type
+    create_cupholder,        # Create an installed cup holder
+    post_data,               # Convert dict to form POST format
+    extract_form_errors,     # Parse form validation errors
+    disable_warnings,        # Suppress expected log warnings
+    create_tags,             # Create test tags
+    get_deletable_objects,   # Check cascade deletion
+    assert_object_changes,   # Verify change logging
 )
 
 # Example usage
 name = get_random_string(20)
-user = create_test_user(permissions=['netbox_cup_holder_plugin.view_cupholder'])
+user = create_test_user(permissions=[
+    'netbox_cup_holder_plugin.view_cupholder',
+    'netbox_cup_holder_plugin.view_cupholdertype',
+    'dcim.view_rack',
+])
+cupholder = create_cupholder(name='Test Cupholder')
 tags = create_tags(['important', 'test'])
 
 with disable_warnings('django.request'):
@@ -166,32 +178,62 @@ with disable_warnings('django.request'):
 
 ## Running Tests
 
+### Before you push (recommended)
+
+CI uses **Ruff 0.11.12**, **NetBox v4.5.10**, and **`testing/configuration.py`** — not your day-to-day NetBox install. Run the same checks locally:
+
+```bash
+# Full CI parity (PostgreSQL + Redis on localhost required)
+make ci
+
+# Fast pre-push smoke test (lint + migration dependency graph only)
+make ci-quick
+
+# Install git hook to run ci-quick automatically on push
+make install-pre-push-hook
+```
+
+`make ci-quick` catches the issues that slipped through earlier:
+
+- Ruff version / rule mismatches vs CI
+- Plugin migrations referencing NetBox core migrations that do not exist in v4.5.10
+- (with `make ci`) bad `testing/configuration.py`, missing migrations, test failures
+
+The NetBox release used for checks defaults to `v4.5.10` (see `.github/workflows/ci.yaml`). Override with `NETBOX_REF=v4.5.0 make ci-quick`.
+
 ### Locally (with NetBox installed)
 
 ```bash
 # From your NetBox installation directory
 cd /path/to/netbox/netbox
 
-# Run all plugin tests
-python manage.py test netbox_cup_holder_plugin.tests
+# Run all plugin tests (uses the plugin's minimal test configuration)
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests
 
 # Run specific test file
-python manage.py test netbox_cup_holder_plugin.tests.test_models
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests.test_models
 
 # Run specific test class
-python manage.py test netbox_cup_holder_plugin.tests.test_models.CupholderTestCase
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests.test_models.CupholderTestCase
 
 # Run specific test method
-python manage.py test netbox_cup_holder_plugin.tests.test_models.CupholderTestCase.test_create
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests.test_models.CupholderTestCase.test_create
 
 # Run with verbose output
-python manage.py test netbox_cup_holder_plugin.tests -v 2
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests -v 2
 
 # Run in parallel (faster)
-python manage.py test netbox_cup_holder_plugin.tests --parallel
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests --parallel
 
 # Keep database between runs (faster during development)
-python manage.py test netbox_cup_holder_plugin.tests --keepdb
+NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration \
+  python manage.py test netbox_cup_holder_plugin.tests --keepdb
 ```
 
 ### With Docker Compose (recommended for contributors)
@@ -228,11 +270,11 @@ The CI workflow:
 ### Test Organization
 
 Organize tests by functionality:
-- `test_models.py` - Model creation, validation, relationships
-- `test_views.py` - Web UI, forms, permissions
-- `test_api.py` - REST API endpoints (if enabled)
-- `test_filters.py` - FilterSet testing (if needed)
-- `test_graphql.py` - GraphQL queries (if enabled)
+
+- `test_models.py` — model creation, validation, relationships, seed data
+- `test_views.py` — web UI, forms, permissions
+- `test_api.py` — REST API endpoints and filters
+- `test_graphql.py` — GraphQL queries for types and instances
 
 ### Test Naming Convention
 
@@ -260,7 +302,11 @@ def test_view_without_permission(self):
 
 def test_view_with_permission(self):
     """Test view with proper permission."""
-    self.add_permissions('netbox_cup_holder_plugin.view_cupholder')
+    self.add_permissions(
+        'netbox_cup_holder_plugin.view_cupholder',
+        'netbox_cup_holder_plugin.view_cupholdertype',
+        'dcim.view_rack',
+    )
     url = reverse('...')
     response = self.client.get(url)
     self.assertHttpStatus(response, 200)
@@ -329,14 +375,14 @@ def test_api_crud(self):
 
 ## Test Configuration
 
-Test configuration is in `testing/configuration.py`. Key settings:
+The plugin ships with a minimal test configuration at `netbox_cup_holder_plugin/test_configuration.py`, which extends NetBox's built-in testing defaults and enables the plugin.
 
-- **Database**: PostgreSQL (localhost:5432)
-- **Redis**: localhost:6379
-- **Debug**: Enabled
-- **Logging**: Console output
+For standalone development, a fuller example configuration is also provided at `testing/configuration.py` (PostgreSQL, Redis, GraphQL enabled).
 
-Set environment variables to override:
+Set `NETBOX_CONFIGURATION=netbox_cup_holder_plugin.test_configuration` when running tests locally.
+
+Environment variables to override database and Redis settings:
+
 ```bash
 export DB_HOST=postgres
 export DB_PORT=5432
@@ -379,6 +425,7 @@ Tests must pass before PRs can be merged.
 
 **"Permission denied"**
 - Ensure you added required permissions in setUp
+- Cup holder tests often need `view_cupholdertype` and `dcim.view_rack` in addition to `view_cupholder`
 - Check permission strings are correct
 
 **Tests hanging**
